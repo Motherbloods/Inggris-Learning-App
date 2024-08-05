@@ -1,4 +1,41 @@
-const express = require("express"); 
-const router = express.Router(); 
-const {} = require("../controllers/index.controller") 
-module.exports = router; 
+const express = require("express");
+const router = express.Router();
+const { login, register } = require("../controllers/user.controller");
+const {
+  createExercise,
+  getExerciseById,
+  getExercises,
+} = require("../controllers/exercise.controller");
+const {
+  createLesson,
+  getLessonById,
+  getLessons,
+  updateLesson,
+  deleteLesson,
+} = require("../controllers/lesson.controller");
+const {
+  updateProgress,
+  getProgress,
+} = require("../controllers/progress.controller");
+
+//User Routes
+router.post("/api/register", register);
+router.post("/api/login", login);
+
+//Lesson Routes
+router.post("/api/lessons", createLesson);
+router.get("/api/lessons", getLessons);
+router.get("/api/lessons/:id", getLessonById);
+router.put("/api/lessons/:id", updateLesson);
+router.delete("/api/lessons/:id", deleteLesson);
+
+//Exercise Routes
+router.post("/api/exercises", createExercise);
+router.get("/api/exercises", getExercises);
+router.get("/api/exercises/:id", getExerciseById);
+
+//Progress Routes
+router.post("/api/progress", updateProgress);
+router.get("/api/progress/:userId", getProgress);
+
+module.exports = router;
