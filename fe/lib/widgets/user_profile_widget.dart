@@ -42,6 +42,18 @@ class UserProfileWidget extends StatelessWidget {
                     'Level ${user?.level ?? 1}',
                     style: Theme.of(context).textTheme.subtitle1,
                   ),
+                  LinearProgressIndicator(
+                    value: (user?.xp ?? 0) /
+                        100, // Assuming xp is between 0 and 100
+                    backgroundColor: Colors.grey[300],
+                    color: Colors.blue,
+                    minHeight: 8,
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'XP: ${user?.xp ?? 0} / 100',
+                    style: Theme.of(context).textTheme.caption,
+                  ),
                 ],
               ),
             ),

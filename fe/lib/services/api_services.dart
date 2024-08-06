@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'package:fe/models/lesson.dart';
+import 'package:fe/models/lesson_progress.dart';
+import 'package:fe/models/material_progress.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/user.dart';
-import '../models/lesson.dart';
+import '../models/lesson_material.dart';
 import '../models/exercise.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,7 +36,6 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'email': email, 'password': password}),
     );
-
     if (response.statusCode == 200 || response.statusCode == 201) {
       try {
         final userMap = jsonDecode(response.body);
@@ -89,6 +91,27 @@ class ApiService {
     }
   }
 
+  Future<List<LessonMaterial>> getMaterialById(String lessonId) async {
+    try {
+      print('Fetching materials for lesson ID: $lessonId');
+      final response = await _httpClient
+          .get(Uri.parse('$baseUrl/api/lessons/material/$lessonId'));
+
+      if (response.statusCode == 200) {
+        List<dynamic> jsonResponse = json.decode(response.body);
+        return jsonResponse
+            .map((data) => LessonMaterial.fromJson(data))
+            .toList();
+      } else {
+        throw Exception(
+            'Failed to load lesson materials: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('An error occurred: $e');
+      throw Exception('An error occurred while fetching lesson materials');
+    }
+  }
+
   // Exercise API calls
   Future<List<Exercise>> getExercises({String? lessonId}) async {
     final String url = lessonId != null
@@ -100,6 +123,69 @@ class ApiService {
       return exerciseJson.map((json) => Exercise.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load exercises');
+    }
+  }
+
+  Future<List<Exercise>> getExercisesForMaterial(String materialId) async {
+    try {
+      final response = await _httpClient.get(
+        Uri.parse('$baseUrl/api/exercises?materialId=$materialId'),
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> jsonResponse = json.decode(response.body);
+        return jsonResponse.map((data) => Exercise.fromJson(data)).toList();
+      } else {
+        throw Exception('Failed to load exercises: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('An error occurred: $e');
+      throw Exception('An error occurred while fetching exercises');
+    }
+  }
+
+  Future<void> updateLessonProgress(String lessonId, double progress,
+      String materialId, bool isCompleted) async {
+    try {
+      final user = await getCurrentUser();
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
+      final response = await _httpClient.post(
+        Uri.parse('$baseUrl/api/users/${user.id}/lesson-progress'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'lessonId': lessonId,
+          'progress': progress,
+          'materialId': materialId,
+          'isCompleted': isCompleted
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update lesson progress');
+      }
+
+      final responseData = json.decode(response.body);
+      if (responseData['user'] != null) {
+        final updatedUser = User.fromJson(responseData['user']);
+
+        // Update local user data
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', jsonEncode(updatedUser.toJson()));
+
+        // Update the current user in memory
+        user.lessons = updatedUser.lessons;
+        user.progress = updatedUser.progress;
+
+        print('Lesson progress updated successfully');
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } catch (error) {
+      print('Error updating lesson progress: $error');
+      rethrow;
     }
   }
 

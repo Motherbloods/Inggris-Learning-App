@@ -1,5 +1,8 @@
-import 'package:get/get.dart';
+import 'package:fe/controllers/home_controller.dart';
+import 'package:fe/controllers/lesson_material_controller.dart';
+import 'package:fe/models/lesson_progress.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../models/exercise.dart';
 import '../services/api_services.dart';
 
@@ -10,32 +13,34 @@ class PracticeController extends GetxController {
   final isLoading = true.obs;
   final score = 0.obs;
   final wrongExercises = <Exercise>[].obs;
+  final isReviewMode = false.obs;
+  final String materialId;
+  final String lessonId;
+  final isCompleted = false.obs;
 
-  PracticeController(List<Exercise> exerciseList) {
-    exercises.value = exerciseList;
-  }
-
-  Exercise get currentExercise => wrongExercises.isEmpty
-      ? exercises[currentExerciseIndex.value]
-      : wrongExercises[currentExerciseIndex.value];
-
-  bool get isLastExercise => wrongExercises.isEmpty
-      ? currentExerciseIndex.value == exercises.length - 1
-      : currentExerciseIndex.value == wrongExercises.length - 1;
-
-  bool get isReviewMode => wrongExercises.isNotEmpty;
+  PracticeController(this.materialId, this.lessonId);
 
   @override
   void onInit() {
     super.onInit();
-    isLoading.value = false;
+    fetchExercises();
+    checkCompletionStatus();
   }
 
-  Future<void> fetchExercises() async {
+  Exercise get currentExercise => isReviewMode.value
+      ? wrongExercises[currentExerciseIndex.value]
+      : exercises[currentExerciseIndex.value];
+
+  bool get isLastExercise => isReviewMode.value
+      ? currentExerciseIndex.value == wrongExercises.length - 1
+      : currentExerciseIndex.value == exercises.length - 1;
+
+  void fetchExercises() async {
     isLoading.value = true;
     try {
-      exercises.value = await _apiService.getExercises();
+      exercises.value = await _apiService.getExercisesForMaterial(materialId);
     } catch (e) {
+      print('Error fetching exercises: $e');
       Get.snackbar('Error', 'Failed to load exercises');
     } finally {
       isLoading.value = false;
@@ -44,55 +49,65 @@ class PracticeController extends GetxController {
 
   void checkAnswer(String selectedAnswer) {
     final currentExercise = this.currentExercise;
-    bool isCorrect;
-
-    if (currentExercise.type == 'truefalse') {
-      isCorrect = selectedAnswer.toLowerCase() ==
-          currentExercise.correctAnswer.toLowerCase();
-    } else {
-      isCorrect = selectedAnswer == currentExercise.correctAnswer;
-    }
+    bool isCorrect = selectedAnswer.toLowerCase() ==
+        currentExercise.correctAnswer.toLowerCase();
 
     if (isCorrect) {
       score.value++;
-      Get.snackbar('Correct!', 'Good job!', backgroundColor: Colors.green);
     } else {
-      Get.snackbar('Incorrect',
-          'The correct answer was: ${currentExercise.correctAnswer}',
-          backgroundColor: Colors.red);
-      if (!isReviewMode) {
+      if (!isReviewMode.value) {
         wrongExercises.add(currentExercise);
       }
     }
+
     nextExercise();
   }
 
   void nextExercise() {
     if (isLastExercise) {
-      if (wrongExercises.isEmpty) {
-        finishPractice();
-      } else if (isReviewMode) {
-        finishPractice();
+      if (!isReviewMode.value && wrongExercises.isNotEmpty) {
+        startReviewMode();
       } else {
-        startReview();
+        print('ini selesai');
+        finishPractice();
       }
     } else {
       currentExerciseIndex.value++;
     }
   }
 
-  void startReview() {
-    Get.snackbar('Review Time', 'Let\'s review the questions you got wrong');
+  void startReviewMode() {
+    isReviewMode.value = true;
     currentExerciseIndex.value = 0;
   }
 
-  void finishPractice() {
-    final totalExercises = exercises.length;
-    final correctAnswers = score.value;
+  void checkCompletionStatus() async {
+    final user = await _apiService.getCurrentUser();
+    if (user != null && user.lessons != null) {
+      final lessonProgress = user.lessons!.firstWhere(
+        (lp) => lp.lessonId == lessonId,
+        orElse: () => LessonProgress(lessonId: lessonId, progress: 0.0),
+      );
+      isCompleted.value =
+          lessonProgress.materialIds?.contains(materialId) ?? false;
+    }
+  }
+
+  void finishPractice() async {
+    bool allCorrect = score.value == exercises.length;
+
+    await _apiService.updateLessonProgress(
+        lessonId, score.value.toDouble(), materialId, allCorrect);
+
+    final homeController = Get.find<HomeController>();
+    homeController.updateUserProgress();
+
+    final lessonMaterialController = Get.find<LessonMaterialController>();
+    lessonMaterialController.refreshMaterials();
     Get.dialog(
       AlertDialog(
-        title: Text('Practice Complete'),
-        content: Text('Your score: $correctAnswers/$totalExercises'),
+        title: Text(allCorrect ? 'Practice Complete' : 'Practice Finished'),
+        content: Text('Your final score: ${score.value}/${exercises.length}'),
         actions: [
           TextButton(
             child: Text('OK'),

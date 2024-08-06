@@ -6,7 +6,6 @@ const User = require("../models/user");
 const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    console.log(username, email, password);
     if (!username || !email || !password) {
       return res.status(400);
     }
@@ -20,7 +19,6 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(email, password);
     if (!email || !password) {
       return res.status(400);
     }
@@ -28,7 +26,6 @@ const login = async (req, res) => {
     if (!user) {
       return res.status(404).send("User not found");
     }
-    console.log("ini user", user);
     res.status(200).send(user);
   } catch (err) {
     console.log(err);

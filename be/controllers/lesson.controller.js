@@ -1,6 +1,7 @@
 const Lesson = require("../models/lesson");
 const Exercise = require("../models/exercise");
 const Progress = require("../models/progress");
+const Material_Lesson = require("../models/materialLesson");
 
 const createLesson = async (req, res) => {
   try {
@@ -16,7 +17,7 @@ const createLesson = async (req, res) => {
 
 const getLessons = async (req, res) => {
   try {
-    const lessons = await Lesson.find().populate("exercises");
+    const lessons = await Lesson.find();
     res.status(200).json(lessons);
   } catch (err) {
     console.error(err);
@@ -26,7 +27,6 @@ const getLessons = async (req, res) => {
 
 const getLessonById = async (req, res) => {
   try {
-    console.log("Getting", req.params.id);
     const lesson = await Lesson.findById(req.params.id).populate("exercises");
     if (!lesson) return res.status(404).json({ message: "Lesson not found" });
     res.status(200).json(lesson);
@@ -49,6 +49,19 @@ const updateLesson = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getMaterialById = async (req, res) => {
+  try {
+    const material = await Material_Lesson.find({
+      lessonId: req.params.id,
+    });
+    if (!material)
+      return res.status(404).json({ message: "Lesson material not found" });
+    res.json(material);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -97,4 +110,5 @@ module.exports = {
   deleteLesson,
   updateLesson,
   getLessonById,
+  getMaterialById,
 };

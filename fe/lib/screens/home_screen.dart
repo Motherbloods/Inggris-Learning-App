@@ -1,10 +1,11 @@
-import 'package:fe/screens/pratice_screen.dart';
+import 'package:fe/models/lesson_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
 import '../widgets/user_profile_widget.dart';
 import '../widgets/progress_bar_widget.dart';
 import '../widgets/lesson_list_widget.dart';
+import 'lesson_materials_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final HomeController controller = Get.put(HomeController());
@@ -49,21 +50,56 @@ class HomeScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     if (controller.lessons.isNotEmpty)
-                      LessonListWidget(lessons: controller.lessons)
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: controller.lessons.length,
+                        itemBuilder: (context, index) {
+                          final lesson = controller.lessons[index];
+                          var lessonProgress =
+                              controller.user.value!.lessons!.firstWhere(
+                            (lp) {
+                              print('ini lessonId ${lp.lessonId}');
+                              return lp.lessonId == lesson.id;
+                            },
+                            orElse: () => LessonProgress(
+                                lessonId: lesson.id,
+                                progress: 0.0,
+                                materialIds: []),
+                          );
+
+                          print('ini progress ${lessonProgress.progress}');
+                          return Card(
+                            margin: EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                child: Text(lesson.level.toString()),
+                                backgroundColor: _getLevelColor(lesson.level),
+                              ),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(lesson.title),
+                                  SizedBox(height: 4),
+                                  LinearProgressIndicator(
+                                    value: lessonProgress.progress / 100,
+                                    backgroundColor: Colors.grey[200],
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        _getLevelColor(lesson.level)),
+                                  ),
+                                ],
+                              ),
+                              trailing: Icon(Icons.chevron_right),
+                              onTap: () {
+                                Get.to(() =>
+                                    LessonMaterialsScreen(lesson: lesson));
+                              },
+                            ),
+                          );
+                        },
+                      )
                     else
                       Text('No lessons available.'),
-                    SizedBox(height: 24),
-                    // ElevatedButton.icon(
-                    //   icon: Icon(Icons.play_arrow),
-                    //   label: Text('Start Practice'),
-                    //   style: ElevatedButton.styleFrom(
-                    //     padding:
-                    //         EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                    //   ),
-                    //   onPressed: () {
-                    //     Get.to(() => PracticeScreen());
-                    //   },
-                    // ),
                   ],
                 ),
               ),
@@ -80,5 +116,11 @@ class HomeScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Color _getLevelColor(int level) {
+    if (level <= 3) return Colors.green;
+    if (level <= 6) return Colors.orange;
+    return Colors.red;
   }
 }

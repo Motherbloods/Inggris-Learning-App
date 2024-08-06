@@ -1,5 +1,5 @@
 const Exercise = require("../models/exercise");
-const Lesson = require("../models/lesson");
+const Lesson = require("../models/materialLesson");
 
 const createExercise = async (req, res) => {
   try {
@@ -29,9 +29,9 @@ const createExercise = async (req, res) => {
 
 const getExercises = async (req, res) => {
   try {
-    const { lessonId } = req.query;
-    const query = lessonId ? { lesson: lessonId } : {};
-    const exercises = await Exercise.find(query);
+    const { materialId } = req.query;
+
+    const exercises = await Exercise.find({ materialId });
     res.status(200).json(exercises);
   } catch (err) {
     console.error(err);

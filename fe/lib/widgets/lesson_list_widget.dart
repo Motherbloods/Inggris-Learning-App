@@ -1,6 +1,7 @@
-import 'package:fe/screens/lesson_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../models/lesson.dart';
+import '../screens/lesson_materials_screen.dart';
 
 class LessonListWidget extends StatelessWidget {
   final List<Lesson> lessons;
@@ -23,15 +24,10 @@ class LessonListWidget extends StatelessWidget {
               backgroundColor: _getLevelColor(lesson.level),
             ),
             title: Text(lesson.title),
-            subtitle: Text('${lesson.exercises!.length} exercises'),
+            subtitle: Text('${lesson.materialIds.length} materials'),
             trailing: Icon(Icons.chevron_right),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => LessonScreen(lesson: lesson),
-                ),
-              );
+              Get.to(() => LessonMaterialsScreen(lesson: lesson));
             },
           ),
         );

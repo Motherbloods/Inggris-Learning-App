@@ -12,6 +12,7 @@ const {
   getLessons,
   updateLesson,
   deleteLesson,
+  getMaterialById,
 } = require("../controllers/lesson.controller");
 const {
   updateProgress,
@@ -28,6 +29,7 @@ router.get("/api/lessons", getLessons);
 router.get("/api/lessons/:id", getLessonById);
 router.put("/api/lessons/:id", updateLesson);
 router.delete("/api/lessons/:id", deleteLesson);
+router.get("/api/lessons/material/:id", getMaterialById);
 
 //Exercise Routes
 router.post("/api/exercises", createExercise);
@@ -35,7 +37,7 @@ router.get("/api/exercises", getExercises);
 router.get("/api/exercises/:id", getExerciseById);
 
 //Progress Routes
-router.post("/api/progress", updateProgress);
 router.get("/api/progress/:userId", getProgress);
+router.post("/api/users/:userId/lesson-progress", updateProgress);
 
 module.exports = router;

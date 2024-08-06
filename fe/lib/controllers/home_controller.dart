@@ -20,6 +20,7 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     fetchData();
+    ever(user, (_) => update());
   }
 
   Future<void> fetchData() async {
@@ -54,5 +55,9 @@ class HomeController extends GetxController {
 
   void changeScreen(int index) {
     currentScreenIndex.value = index;
+  }
+
+  void updateUserProgress() {
+    fetchData();
   }
 }

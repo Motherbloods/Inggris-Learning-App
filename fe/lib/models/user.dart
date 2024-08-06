@@ -1,3 +1,5 @@
+import 'package:fe/models/lesson_progress.dart';
+
 class User {
   String id;
   String email;
@@ -5,17 +7,23 @@ class User {
   String username;
   int level;
   int progress;
+  List<LessonProgress>? lessons;
+  double? xp;
 
-  User({
-    required this.id,
-    required this.email,
-    this.avatarUrl, // Allow null
-    required this.username,
-    required this.level,
-    required this.progress,
-  });
+  User(
+      {required this.id,
+      required this.email,
+      this.avatarUrl, // Allow null
+      required this.username,
+      required this.level,
+      required this.progress,
+      this.xp,
+      this.lessons});
 
   factory User.fromJson(Map<String, dynamic> json) {
+    var lessonsFromJson = json['lessons'] as List;
+    List<LessonProgress> lessonList =
+        lessonsFromJson.map((i) => LessonProgress.fromJson(i)).toList();
     return User(
       id: json['_id'],
       email: json['email'],
@@ -23,6 +31,8 @@ class User {
       username: json['username'],
       level: json['level'],
       progress: json['progress'],
+      lessons: lessonList,
+      xp: json['xp'],
     );
   }
 
@@ -34,6 +44,7 @@ class User {
       'username': username,
       'level': level,
       'progress': progress,
+      'lessons': lessons!.map((lesson) => lesson.toJson()).toList(),
     };
   }
 }
