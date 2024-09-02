@@ -29,3 +29,64 @@ Language Learning App adalah aplikasi yang dirancang untuk membantu pengguna mem
 │   └── ...
 ├── README.md
 └── ...
+```
+
+## Backend (Node.js)
+
+### Fitur Backend Utama
+
+- Sistem autentikasi dengan JWT
+- Penghitungan XP berdasarkan kinerja pengguna
+- Pelacakan kemajuan pelajaran dan materi
+- API untuk mengelola pelajaran, latihan, dan kemajuan pengguna
+
+## Frontend (Flutter)
+
+### Fitur Frontend Utama
+
+- Navigasi mudah menggunakan GetX
+- Tampilan responsif untuk berbagai ukuran layar
+- Integrasi dengan API backend untuk mengambil dan mengirim data
+- Tampilan interaktif untuk pelajaran dan latihan
+
+## Instalasi dan Penggunaan
+
+1. **Clone the repository**
+
+  ```bash
+  git clone https://github.com/Motherbloods/Inggris-Learning-App.git
+  cd Inggris-Learning-App
+  ```
+
+2. **Instal dependencies untuk backend (Node JS)**:
+
+  ```bash
+  cd be
+  npm install
+  ```
+
+3. **Instal dependencies untuk frontend (Flutter)**:
+
+  ```bash
+  cd fe
+  flutter pub get
+  ```
+
+4. Atur variabel lingkungan di file `.env`
+5. Jalankan server backend:
+
+  ```bash
+  node app.js
+  ```
+
+6. Jalankan aplikasi Flutter:
+
+  ```bash
+  flutter run
+  ```
+
+## Kontribusi
+Kontribusi selalu diterima dengan baik. Silakan buat pull request atau buka issue untuk saran dan perbaikan.
+
+## Kontak
+[Habib Risky Kurniawan] - [motherbloodss
